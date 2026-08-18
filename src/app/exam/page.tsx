@@ -1,29 +1,38 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { quizzes } from "@/data/modules";
-import { useProgressStore } from "@/store/progress";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default function ExamPage() {
+  const { status } = useSession();
   const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [finished, setFinished] = useState(false);
-  const [score, setScore] = useState(0);
-
-  const completeQuiz = useProgressStore((s) => s.completeQuiz);
-  const quizScores = useProgressStore((s) => s.quizScores);
+  const [result, setResult] = useState<{
+    score: number;
+    passed: boolean;
+    pointsEarned: number;
+    correct: number;
+    total: number;
+  } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const quiz = quizzes.find((q) => q.id === activeQuizId);
 
   const startQuiz = (id: string) => {
+    if (status !== "authenticated") return;
     setActiveQuizId(id);
     setCurrentQ(0);
     setAnswers([]);
     setFinished(false);
-    setScore(0);
+    setResult(null);
+    setError("");
   };
 
   const selectAnswer = (idx: number) => {
@@ -32,26 +41,52 @@ export default function ExamPage() {
     setAnswers(newAnswers);
   };
 
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
     if (!quiz) return;
     if (currentQ < quiz.questions.length - 1) {
       setCurrentQ(currentQ + 1);
-    } else {
-      // calculate score
-      let correct = 0;
-      let points = 0;
-      quiz.questions.forEach((q, i) => {
-        if (answers[i] === q.correctIndex) {
-          correct++;
-          points += q.points;
-        }
-      });
-      const percentage = Math.round((correct / quiz.questions.length) * 100);
-      setScore(percentage);
-      setFinished(true);
-      completeQuiz(quiz.id, percentage, points);
+      return;
     }
+
+    // Submit to server — grading happens server-side only
+    setSubmitting(true);
+    setError("");
+    try {
+      const res = await fetch("/api/quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quizId: quiz.id, answers }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "জমা দিতে ব্যর্থ");
+        setSubmitting(false);
+        return;
+      }
+      setResult(data);
+      setFinished(true);
+    } catch {
+      setError("নেটওয়ার্ক সমস্যা");
+    }
+    setSubmitting(false);
   };
+
+  if (status === "unauthenticated") {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-20 text-center">
+        <h1 className="text-2xl font-bold">পরীক্ষা দিতে লগইন প্রয়োজন</h1>
+        <p className="mt-2 text-slate-600">স্কোর ও পয়েন্ট সেভ করতে অ্যাকাউন্ট লাগবে।</p>
+        <div className="mt-6 flex justify-center gap-3">
+          <Link href="/login">
+            <Button>লগইন</Button>
+          </Link>
+          <Link href="/register">
+            <Button variant="secondary">রেজিস্টার</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (activeQuizId && quiz && !finished) {
     const q = quiz.questions[currentQ];
@@ -78,6 +113,7 @@ export default function ExamPage() {
             {q.options.map((opt, idx) => (
               <button
                 key={idx}
+                type="button"
                 onClick={() => selectAnswer(idx)}
                 className={`w-full rounded-xl border px-4 py-3 text-left transition ${
                   answers[currentQ] === idx
@@ -85,30 +121,44 @@ export default function ExamPage() {
                     : "border-slate-200 hover:border-slate-300 dark:border-slate-700"
                 }`}
               >
-                <span className="mr-3 font-medium text-slate-400">{String.fromCharCode(65 + idx)}.</span>
+                <span className="mr-3 font-medium text-slate-400">
+                  {String.fromCharCode(65 + idx)}.
+                </span>
                 {opt}
               </button>
             ))}
           </CardContent>
         </Card>
 
+        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+
         <div className="mt-6 flex justify-end">
-          <Button onClick={nextQuestion} disabled={answers[currentQ] === undefined}>
-            {currentQ === quiz.questions.length - 1 ? "জমা দিন" : "পরবর্তী →"}
+          <Button
+            onClick={nextQuestion}
+            disabled={answers[currentQ] === undefined || submitting}
+          >
+            {submitting
+              ? "জমা হচ্ছে..."
+              : currentQ === quiz.questions.length - 1
+              ? "জমা দিন"
+              : "পরবর্তী →"}
           </Button>
         </div>
       </div>
     );
   }
 
-  if (finished && quiz) {
-    const passed = score >= quiz.passingScore;
+  if (finished && result && quiz) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
-        <div className="text-6xl">{passed ? "🎉" : "😔"}</div>
-        <h1 className="mt-4 text-3xl font-bold">{passed ? "অভিনন্দন! পাস করেছেন" : "আবার চেষ্টা করুন"}</h1>
-        <p className="mt-2 text-4xl font-bold text-emerald-600">{score}%</p>
-        <p className="mt-2 text-slate-600">পাসিং স্কোর: {quiz.passingScore}%</p>
+        <div className="text-6xl">{result.passed ? "🎉" : "😔"}</div>
+        <h1 className="mt-4 text-3xl font-bold">
+          {result.passed ? "অভিনন্দন! পাস করেছেন" : "আবার চেষ্টা করুন"}
+        </h1>
+        <p className="mt-2 text-4xl font-bold text-emerald-600">{result.score}%</p>
+        <p className="mt-2 text-slate-600">
+          সঠিক: {result.correct}/{result.total} · +{result.pointsEarned} পয়েন্ট
+        </p>
         <div className="mt-8 flex justify-center gap-4">
           <Button onClick={() => setActiveQuizId(null)}>সব পরীক্ষা</Button>
           <Button variant="secondary" onClick={() => startQuiz(quiz.id)}>
@@ -123,33 +173,25 @@ export default function ExamPage() {
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <h1 className="text-3xl font-bold text-slate-900 dark:text-white">পরীক্ষা ও কুইজ</h1>
       <p className="mt-2 text-slate-600 dark:text-slate-400">
-        জ্ঞান যাচাই করুন। ভালো স্কোর করলে অতিরিক্ত পয়েন্ট ও ব্যাজ পাবেন।
+        সার্ভার-সাইড মার্কিং — উত্তর ক্লায়েন্টে ফাঁস হয় না।
       </p>
 
       <div className="mt-8 grid gap-6 sm:grid-cols-2">
-        {quizzes.map((q) => {
-          const prevScore = quizScores[q.id];
-          return (
-            <Card key={q.id}>
-              <CardHeader>
-                <CardTitle>{q.title}</CardTitle>
-                <CardDescription>
-                  {q.questions.length}টি প্রশ্ন · {q.timeLimitMinutes} মিনিট · পাস: {q.passingScore}%
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {prevScore !== undefined && (
-                  <p className="mb-3 text-sm">
-                    আপনার সেরা স্কোর: <span className="font-bold text-emerald-600">{prevScore}%</span>
-                  </p>
-                )}
-                <Button onClick={() => startQuiz(q.id)}>
-                  {prevScore !== undefined ? "আবার দিন" : "পরীক্ষা শুরু করুন"}
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {quizzes.map((q) => (
+          <Card key={q.id}>
+            <CardHeader>
+              <CardTitle>{q.title}</CardTitle>
+              <CardDescription>
+                {q.questions.length}টি প্রশ্ন · পাস: {q.passingScore}%
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => startQuiz(q.id)} disabled={status !== "authenticated"}>
+                পরীক্ষা শুরু করুন
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );

@@ -1,15 +1,17 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { modules } from "@/data/modules";
-import { useProgressStore } from "@/store/progress";
 import { Button } from "@/components/ui/button";
 
 export default function LessonPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const completeLesson = useProgressStore((s) => s.completeLesson);
-  const completedLessons = useProgressStore((s) => s.completedLessons);
+  const { status } = useSession();
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
 
   let lesson = null;
   let moduleTitle = "";
@@ -28,6 +30,16 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
     }
   }
 
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    fetch("/api/progress")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.completedLessons) setCompletedLessons(d.completedLessons);
+      })
+      .catch(() => {});
+  }, [status, id]);
+
   if (!lesson) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center">
@@ -41,21 +53,39 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
 
   const isCompleted = completedLessons.includes(lesson.id);
 
-  const handleComplete = () => {
-    completeLesson(lesson!.id, lesson!.pointsReward);
-  };
-
-  // Simple markdown-like rendering (basic)
-  const renderContent = (content: string) => {
-    return content.split("\n").map((line, i) => {
-      if (line.startsWith("# ")) return <h1 key={i}>{line.slice(2)}</h1>;
-      if (line.startsWith("## ")) return <h2 key={i}>{line.slice(3)}</h2>;
-      if (line.startsWith("### ")) return <h3 key={i}>{line.slice(4)}</h3>;
-      if (line.startsWith("- ")) return <li key={i}>{line.slice(2)}</li>;
-      if (line.startsWith("```")) return null; // skip for simplicity in this render
-      if (line.trim() === "") return <br key={i} />;
-      return <p key={i}>{line}</p>;
-    });
+  const handleComplete = async () => {
+    if (status !== "authenticated") {
+      setMessage("পয়েন্ট সেভ করতে লগইন করুন");
+      return;
+    }
+    setSaving(true);
+    setMessage("");
+    try {
+      const res = await fetch("/api/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "completeLesson",
+          lessonId: lesson!.id,
+          points: lesson!.pointsReward,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMessage(data.error || "সেভ ব্যর্থ");
+      } else if (data.alreadyDone) {
+        setMessage("ইতিমধ্যে সম্পন্ন");
+        setCompletedLessons((prev) =>
+          prev.includes(lesson!.id) ? prev : [...prev, lesson!.id]
+        );
+      } else {
+        setCompletedLessons((prev) => [...prev, lesson!.id]);
+        setMessage(`+${data.pointsAwarded} পয়েন্ট যোগ হয়েছে`);
+      }
+    } catch {
+      setMessage("নেটওয়ার্ক সমস্যা");
+    }
+    setSaving(false);
   };
 
   return (
@@ -73,14 +103,18 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
       <div className="mt-3 flex gap-4 text-sm text-slate-500">
         <span>⏱️ {lesson.durationMinutes} মিনিট</span>
         <span>🎯 +{lesson.pointsReward} পয়েন্ট</span>
-        {isCompleted && <span className="text-emerald-600 font-medium">✓ সম্পন্ন</span>}
+        {isCompleted && <span className="font-medium text-emerald-600">✓ সম্পন্ন</span>}
       </div>
 
-      <article className="lesson-content mt-8 prose prose-slate dark:prose-invert max-w-none">
+      <article className="lesson-content mt-8">
         <pre className="whitespace-pre-wrap font-sans text-base leading-relaxed text-slate-700 dark:text-slate-300">
           {lesson.content}
         </pre>
       </article>
+
+      {message && (
+        <p className="mt-4 text-sm font-medium text-emerald-700 dark:text-emerald-400">{message}</p>
+      )}
 
       <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-6 dark:border-slate-800">
         <Link href="/courses">
@@ -88,9 +122,15 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
         </Link>
         <div className="flex gap-3">
           {!isCompleted ? (
-            <Button onClick={handleComplete}>লেসন সম্পন্ন করুন (+{lesson.pointsReward})</Button>
+            <Button onClick={handleComplete} disabled={saving}>
+              {saving
+                ? "সেভ হচ্ছে..."
+                : status === "authenticated"
+                ? `লেসন সম্পন্ন করুন (+${lesson.pointsReward})`
+                : "লগইন করে সম্পন্ন করুন"}
+            </Button>
           ) : (
-            <span className="flex items-center text-emerald-600 font-medium">✓ পয়েন্ট যোগ হয়েছে</span>
+            <span className="flex items-center font-medium text-emerald-600">✓ পয়েন্ট সেভ হয়েছে</span>
           )}
           {nextLessonId && (
             <Link href={`/lessons/${nextLessonId}`}>

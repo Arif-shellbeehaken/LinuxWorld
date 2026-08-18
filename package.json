@@ -2,15 +2,20 @@
   "name": "linux-zero-to-hero",
   "version": "1.0.0",
   "private": true,
-  "description": "Linux Zero to Hero - সম্পূর্ণ বাংলা লিনাক্স লার্নিং প্ল্যাটফর্ম",
+  "description": "Linux Zero to Hero - \u09b8\u09ae\u09cd\u09aa\u09c2\u09b0\u09cd\u09a3 \u09ac\u09be\u0982\u09b2\u09be \u09b2\u09bf\u09a8\u09be\u0995\u09cd\u09b8 \u09b2\u09be\u09b0\u09cd\u09a8\u09bf\u0982 \u09aa\u09cd\u09b2\u09cd\u09af\u09be\u099f\u09ab\u09b0\u09cd\u09ae",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "next": "16.3.1",
@@ -20,7 +25,11 @@
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.3.1",
     "class-variance-authority": "^0.7.1",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.6",
+    "@prisma/client": "^6.13.0",
+    "next-auth": "^5.0.0-beta.29",
+    "bcryptjs": "^3.0.2",
+    "zod": "^4.0.14"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -35,6 +44,9 @@
     "@vitejs/plugin-react": "^4.7.0",
     "jsdom": "^26.1.0",
     "@testing-library/react": "^16.3.0",
-    "@testing-library/jest-dom": "^6.6.3"
+    "@testing-library/jest-dom": "^6.6.3",
+    "prisma": "^6.13.0",
+    "@types/bcryptjs": "^2.4.6",
+    "tsx": "^4.20.3"
   }
 }

@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main, linuxWorld]
+  pull_request:
+    branches: [main, linuxWorld]
+
+jobs:
+  quality:
+    name: Lint · Typecheck · Test · Build
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: "file:./ci.db"
+      AUTH_SECRET: "ci-test-secret-must-be-at-least-32-chars-long"
+      AUTH_TRUST_HOST: "true"
+      NEXTAUTH_URL: "http://localhost:3000"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Push DB schema (SQLite for CI)
+        run: npx prisma db push --accept-data-loss
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build

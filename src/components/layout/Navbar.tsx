@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
-import { useProgressStore } from "@/store/progress";
-import { getLevel } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 const navItems = [
   { href: "/", label: "হোম" },
@@ -17,8 +17,21 @@ const navItems = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const totalPoints = useProgressStore((s) => s.totalPoints);
-  const level = getLevel(totalPoints);
+  const { data: session, status } = useSession();
+  const [points, setPoints] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (status !== "authenticated") {
+      setPoints(null);
+      return;
+    }
+    fetch("/api/progress")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.totalPoints !== undefined) setPoints(d.totalPoints);
+      })
+      .catch(() => {});
+  }, [status, pathname]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/80 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80">
@@ -47,20 +60,49 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex flex-col items-end text-xs">
-            <span className="font-semibold text-emerald-600">{totalPoints} পয়েন্ট</span>
-            <span className="text-slate-500">লেভেল {level.level} · {level.title}</span>
-          </div>
-          <Link
-            href="/profile"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold dark:bg-emerald-900 dark:text-emerald-300"
-          >
-            আ
-          </Link>
+          {status === "authenticated" ? (
+            <>
+              {points !== null && (
+                <div className="hidden sm:flex flex-col items-end text-xs">
+                  <span className="font-semibold text-emerald-600">{points} পয়েন্ট</span>
+                  <span className="text-slate-500">{session.user?.name}</span>
+                </div>
+              )}
+              <Link
+                href="/profile"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+                title={session.user?.name ?? "Profile"}
+              >
+                {(session.user?.name ?? "আ").charAt(0)}
+              </Link>
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="hidden sm:inline rounded-lg px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                লগআউট
+              </button>
+            </>
+          ) : status === "loading" ? (
+            <span className="text-xs text-slate-400">...</span>
+          ) : (
+            <div className="flex gap-2">
+              <Link
+                href="/login"
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                লগইন
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+              >
+                রেজিস্টার
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Mobile nav */}
       <div className="flex md:hidden overflow-x-auto border-t border-slate-100 px-2 py-1 dark:border-slate-800">
         {navItems.map((item) => (
           <Link
@@ -68,9 +110,7 @@ export default function Navbar() {
             href={item.href}
             className={cn(
               "whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium",
-              pathname === item.href
-                ? "bg-emerald-50 text-emerald-700"
-                : "text-slate-600"
+              pathname === item.href ? "bg-emerald-50 text-emerald-700" : "text-slate-600"
             )}
           >
             {item.label}
