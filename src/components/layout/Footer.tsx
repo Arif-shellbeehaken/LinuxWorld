@@ -2,40 +2,36 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <div className="grid gap-8 md:grid-cols-3">
-          <div>
-            <div className="flex items-center gap-2 font-bold text-emerald-700">
-              <span className="text-xl">🐧</span>
-              Linux Zero to Hero
-            </div>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              সম্পূর্ণ বাংলায় লিনাক্স শেখার একমাত্র প্ল্যাটফর্ম। শূন্য থেকে হিরো পর্যন্ত।
-            </p>
+    <footer className="mt-16 border-t border-[var(--border)] bg-[var(--panel)]">
+      <div className="mx-auto grid max-w-5xl gap-8 px-4 py-10 sm:grid-cols-3 sm:px-6">
+        <div>
+          <div className="font-mono text-sm font-bold text-[var(--text)]">
+            🐧 Linux <span className="text-[var(--amber)]">Zero → Hero</span>
           </div>
-          <div>
-            <h4 className="font-semibold text-slate-900 dark:text-slate-100">দ্রুত লিংক</h4>
-            <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-400">
-              <li><Link href="/courses" className="hover:text-emerald-600">সব কোর্স</Link></li>
-              <li><Link href="/practice" className="hover:text-emerald-600">প্র্যাকটিস ল্যাব</Link></li>
-              <li><Link href="/exam" className="hover:text-emerald-600">পরীক্ষা দিন</Link></li>
-              <li><Link href="/leaderboard" className="hover:text-emerald-600">লিডারবোর্ড</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-slate-900 dark:text-slate-100">বৈশিষ্ট্য</h4>
-            <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-400">
-              <li>✅ স্টেপ-বাই-স্টেপ লেসন</li>
-              <li>✅ হ্যান্ডস-অন প্র্যাকটিস</li>
-              <li>✅ কুইজ ও পরীক্ষা</li>
-              <li>✅ পয়েন্ট, র‍্যাঙ্ক ও অ্যাওয়ার্ড</li>
-            </ul>
-          </div>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            সম্পূর্ণ বাংলায় লিনাক্স — লেসন, টার্মিনাল, পরীক্ষা, র‍্যাংকিং।
+          </p>
         </div>
-        <div className="mt-8 border-t border-slate-200 pt-6 text-center text-sm text-slate-500 dark:border-slate-800">
-          © {new Date().getFullYear()} Linux Zero to Hero · সব অধিকার সংরক্ষিত · সম্পূর্ণ বাংলায়
+        <div>
+          <h4 className="font-mono text-xs text-[var(--muted)]">লিংক</h4>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li><Link href="/courses" className="text-[var(--muted)] no-underline hover:text-[var(--cyan)]">মডিউল</Link></li>
+            <li><Link href="/terminal" className="text-[var(--muted)] no-underline hover:text-[var(--cyan)]">টার্মিনাল</Link></li>
+            <li><Link href="/exam" className="text-[var(--muted)] no-underline hover:text-[var(--cyan)]">পরীক্ষা</Link></li>
+            <li><Link href="/leaderboard" className="text-[var(--muted)] no-underline hover:text-[var(--cyan)]">র‍্যাংকিং</Link></li>
+          </ul>
         </div>
+        <div>
+          <h4 className="font-mono text-xs text-[var(--muted)]">বৈশিষ্ট্য</h4>
+          <ul className="mt-3 space-y-1 text-sm text-[var(--muted)]">
+            <li>লাইভ VFS টার্মিনাল</li>
+            <li>সার্ভার-সাইড কুইজ গ্রেডিং</li>
+            <li>পয়েন্ট · ব্যাজ · লিডারবোর্ড</li>
+          </ul>
+        </div>
+      </div>
+      <div className="border-t border-[var(--border)] py-4 text-center font-mono text-xs text-[var(--muted)]">
+        Linux Zero to Hero · বাংলা লার্নিং প্ল্যাটফর্ম
       </div>
     </footer>
   );

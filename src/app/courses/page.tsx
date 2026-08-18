@@ -1,61 +1,76 @@
 import Link from "next/link";
 import { modules } from "@/data/modules";
 
+function levelFromOrder(order: number): { label: string; color: string } {
+  if (order <= 5) return { label: "বিগিনার", color: "#5CCFE6" };
+  if (order <= 11) return { label: "ইন্টারমিডিয়েট", color: "#FFB454" };
+  return { label: "অ্যাডভান্সড", color: "#FF6B6B" };
+}
+
 export default function CoursesPage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">সব কোর্স মডিউল</h1>
-        <p className="mt-2 text-slate-600 dark:text-slate-400">
-          ধাপে ধাপে এগোতে থাকুন। প্রতিটি লেসন শেষে পয়েন্ট পাবেন।
-        </p>
-      </div>
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+      <h1 className="font-mono text-2xl font-bold text-[var(--text)]">
+        📚 কারিকুলাম — {modules.length}টি মডিউল
+      </h1>
+      <p className="mt-2 text-sm text-[var(--muted)]">
+        Beginner → Intermediate → Advanced। প্রতিটিতে লেসন, প্র্যাকটিস ও পরীক্ষা।
+      </p>
 
-      <div className="space-y-10">
-        {modules.map((mod) => (
-          <section
-            key={mod.id}
-            id={mod.id}
-            className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
-          >
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <span className="text-4xl">{mod.icon}</span>
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{mod.title}</h2>
-                  <p className="mt-1 text-slate-600 dark:text-slate-400">{mod.description}</p>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {modules.map((mod, idx) => {
+          const lvl = levelFromOrder(mod.order);
+          return (
+            <div
+              key={mod.id}
+              className="rounded-[14px] border border-[var(--border)] bg-[var(--panel)] p-[18px] transition hover:border-[var(--cyan)]"
+            >
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-2xl">{mod.icon}</span>
+                <span
+                  className="lvl-pill"
+                  style={{ ["--lvl-color" as string]: lvl.color }}
+                >
+                  {lvl.label}
+                </span>
+              </div>
+              <div className="font-mono text-[11px] text-[var(--muted)]">
+                মডিউল {String(idx + 1).padStart(2, "0")}
+              </div>
+              <h2 className="mt-1 font-mono text-[15.5px] font-bold text-[var(--text)]">
+                {mod.title}
+              </h2>
+              <p className="mt-1 min-h-[40px] text-[13px] leading-relaxed text-[var(--muted)]">
+                {mod.description}
+              </p>
+              <p className="mt-2 text-xs text-[var(--green)]">
+                {mod.lessons.length} লেসন · {mod.totalPoints} পয়েন্ট
+              </p>
+              <div className="mt-4">
+                <Link
+                  href={`/lessons/${mod.lessons[0]?.id}`}
+                  className="text-[13px] font-semibold text-[var(--cyan)] no-underline hover:underline"
+                >
+                  শুরু করুন →
+                </Link>
+                <div className="mt-3 max-h-40 space-y-1 overflow-y-auto">
+                  {mod.lessons.map((les, i) => (
+                    <Link
+                      key={les.id}
+                      href={`/lessons/${les.id}`}
+                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[12.5px] text-[var(--muted)] no-underline hover:bg-[var(--panel-2)] hover:text-[var(--text)]"
+                    >
+                      <span className="font-mono text-[10px] text-[var(--border)]">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span className="truncate">{les.title}</span>
+                    </Link>
+                  ))}
                 </div>
               </div>
-              <div className="text-right text-sm">
-                <p className="font-semibold text-emerald-600">{mod.totalPoints} পয়েন্ট</p>
-                <p className="text-slate-500">{mod.lessons.length} লেসন</p>
-              </div>
             </div>
-
-            <div className="mt-6 space-y-3">
-              {mod.lessons.map((lesson, idx) => (
-                <Link
-                  key={lesson.id}
-                  href={`/lessons/${lesson.id}`}
-                  className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 transition hover:border-emerald-200 hover:bg-emerald-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:border-emerald-800 dark:hover:bg-emerald-950/30"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
-                      {idx + 1}
-                    </span>
-                    <div>
-                      <p className="font-medium text-slate-900 dark:text-white">{lesson.title}</p>
-                      <p className="text-xs text-slate-500">
-                        {lesson.durationMinutes} মিনিট · +{lesson.pointsReward} পয়েন্ট
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-emerald-600">→</span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
