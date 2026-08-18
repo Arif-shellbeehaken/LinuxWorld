@@ -182,7 +182,8 @@ export default function ExamPage() {
             <CardHeader>
               <CardTitle>{q.title}</CardTitle>
               <CardDescription>
-                {q.questions.length}টি প্রশ্ন · পাস: {q.passingScore}%
+                {q.questions.length}টি প্রশ্ন · সময়: {q.timeLimitMinutes} মিনিট · পাস: {q.passingScore}%
+                {q.id === "quiz-final" ? " · 🏅 ফাইনাল" : q.id === "quiz-midterm" ? " · 📋 মিডটার্ম" : ""}
               </CardDescription>
             </CardHeader>
             <CardContent>
