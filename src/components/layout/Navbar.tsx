@@ -7,7 +7,7 @@ import { useState } from "react";
 
 const items = [
   { href: "/dashboard", icon: "🏠", label: "ড্যাশবোর্ড" },
-  { href: "/courses", icon: "📚", label: "মডিউল" },
+  { href: "/courses", icon: "📚", label: "মডিউল" },,
   { href: "/terminal", icon: "💻", label: "টার্মিনাল" },
   { href: "/practice", icon: "🧪", label: "প্র্যাকটিস" },
   { href: "/exam", icon: "📝", label: "পরীক্ষা" },

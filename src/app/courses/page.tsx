@@ -14,16 +14,17 @@ export default function CoursesPage() {
         📚 কারিকুলাম — {modules.length}টি মডিউল
       </h1>
       <p className="mt-2 text-sm text-[var(--muted)]">
-        Beginner → Intermediate → Advanced। প্রতিটিতে লেসন, প্র্যাকটিস ও পরীক্ষা।
+        প্রতিটি কার্ডে ক্লিক করুন — পাঠ · কমান্ড · লাইভ প্র্যাকটিস · পরীক্ষা একসাথে।
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {modules.map((mod, idx) => {
           const lvl = levelFromOrder(mod.order);
           return (
-            <div
+            <Link
               key={mod.id}
-              className="rounded-[14px] border border-[var(--border)] bg-[var(--panel)] p-[18px] transition hover:border-[var(--cyan)]"
+              href={`/modules/${mod.id}`}
+              className="block rounded-[14px] border border-[var(--border)] bg-[var(--panel)] p-[18px] no-underline transition hover:border-[var(--cyan)] hover:translate-y-[-2px]"
             >
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-2xl">{mod.icon}</span>
@@ -46,29 +47,10 @@ export default function CoursesPage() {
               <p className="mt-2 text-xs text-[var(--green)]">
                 {mod.lessons.length} লেসন · {mod.totalPoints} পয়েন্ট
               </p>
-              <div className="mt-4">
-                <Link
-                  href={`/lessons/${mod.lessons[0]?.id}`}
-                  className="text-[13px] font-semibold text-[var(--cyan)] no-underline hover:underline"
-                >
-                  শুরু করুন →
-                </Link>
-                <div className="mt-3 max-h-40 space-y-1 overflow-y-auto">
-                  {mod.lessons.map((les, i) => (
-                    <Link
-                      key={les.id}
-                      href={`/lessons/${les.id}`}
-                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[12.5px] text-[var(--muted)] no-underline hover:bg-[var(--panel-2)] hover:text-[var(--text)]"
-                    >
-                      <span className="font-mono text-[10px] text-[var(--border)]">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <span className="truncate">{les.title}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
+              <p className="mt-3 text-[13px] font-semibold text-[var(--cyan)]">
+                খুলুন → পাঠ / টার্মিনাল / কুইজ
+              </p>
+            </Link>
           );
         })}
       </div>

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { exercises } from "@/data/modules";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import Terminal from "@/components/terminal/Terminal";
 
 export default function PracticePage() {
   const { status } = useSession();
@@ -70,10 +71,14 @@ export default function PracticePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold text-slate-900 dark:text-white">প্র্যাকটিস ল্যাব</h1>
+      <h1 className="font-mono text-2xl font-bold text-[var(--text)]">🧪 প্র্যাকটিস ল্যাব</h1>
       <p className="mt-2 text-slate-600 dark:text-slate-400">
         হ্যান্ডস-অন এক্সারসাইজ — সম্পন্ন করলে সার্ভারে পয়েন্ট সেভ হয়।
       </p>
+      <div className="mt-6 mb-8">
+        <p className="mb-2 text-sm text-[var(--muted)]">লাইভ টার্মিনাল — এখানেই কমান্ড চেষ্টা করুন</p>
+        <Terminal />
+      </div>
       {status === "unauthenticated" && (
         <p className="mt-2 text-sm text-amber-700 dark:text-amber-400">
           পয়েন্ট সেভ করতে{" "}
