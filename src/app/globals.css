@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --primary: #059669;
+  --primary-foreground: #ffffff;
+  --card: #ffffff;
+  --muted: #f1f5f9;
+  --border: #e2e8f0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --font-sans: var(--font-bengali), var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #020617;
+    --foreground: #f1f5f9;
+    --card: #0f172a;
+    --muted: #1e293b;
+    --border: #1e293b;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Prose styles for lesson content */
+.lesson-content h1 {
+  @apply text-3xl font-bold mt-8 mb-4 text-slate-900 dark:text-slate-50;
+}
+.lesson-content h2 {
+  @apply text-2xl font-semibold mt-6 mb-3 text-slate-800 dark:text-slate-100;
+}
+.lesson-content h3 {
+  @apply text-xl font-semibold mt-4 mb-2;
+}
+.lesson-content p {
+  @apply my-3 leading-relaxed text-slate-700 dark:text-slate-300;
+}
+.lesson-content ul {
+  @apply my-3 list-disc pl-6 space-y-1;
+}
+.lesson-content ol {
+  @apply my-3 list-decimal pl-6 space-y-1;
+}
+.lesson-content code {
+  @apply rounded bg-slate-100 px-1.5 py-0.5 text-sm font-mono text-emerald-700 dark:bg-slate-800 dark:text-emerald-400;
+}
+.lesson-content pre {
+  @apply my-4 overflow-x-auto rounded-xl bg-slate-900 p-4 text-sm text-slate-100;
+}
+.lesson-content pre code {
+  @apply bg-transparent p-0 text-slate-100;
+}
+.lesson-content table {
+  @apply my-4 w-full border-collapse text-sm;
+}
+.lesson-content th,
+.lesson-content td {
+  @apply border border-slate-200 px-3 py-2 dark:border-slate-700;
+}
+.lesson-content th {
+  @apply bg-slate-50 font-semibold dark:bg-slate-800;
+}
+.lesson-content strong {
+  @apply font-semibold text-slate-900 dark:text-white;
+}
+.lesson-content a {
+  @apply text-emerald-600 underline underline-offset-2;
+}
+
+html {
+  scroll-behavior: smooth;
+}
